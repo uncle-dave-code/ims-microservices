@@ -1,25 +1,21 @@
-package com.uncledavecode.orders.model.entities;
+package com.uncledavecode.inventory.model.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
-
 @Entity
-@Table(name = "order_items")
+@Table(name = "inventory")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderItems {
+public class Inventory {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String sku;
-    private BigDecimal price;
     private Long quantity;
-    @ManyToOne
-    @JoinColumn(name = "order_id")
-    private Order order;
 }

@@ -1,4 +1,4 @@
-package com.uncledavecode.products.model.dto;
+package com.uncledavecode.products.model.dtos;
 
 import lombok.*;
 

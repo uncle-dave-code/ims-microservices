@@ -1,4 +1,4 @@
-package com.uncledavecode.orders.model.dtos;
+package com.uncledavecode.inventory.model.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
