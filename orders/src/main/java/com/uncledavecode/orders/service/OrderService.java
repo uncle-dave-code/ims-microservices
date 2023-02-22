@@ -19,13 +19,13 @@ import java.util.UUID;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final WebClient webClient;
-
+//    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
     public void placeOrder(OrderRequest orderRequest) {
 
         //Call inventory service and place order if product is in stock
-        BaseResponses result = webClient.post()
-                .uri("http://localhost:8083/api/inventory/in-stock")
+        BaseResponses result = webClientBuilder.build().post()
+                .uri("http://inventory-service/api/inventory/in-stock")
                 .bodyValue(orderRequest.getOrderItems())
                 .retrieve()
                 .bodyToMono(BaseResponses.class)
