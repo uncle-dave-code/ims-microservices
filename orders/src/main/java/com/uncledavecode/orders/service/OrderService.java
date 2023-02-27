@@ -21,7 +21,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
 //    private final WebClient webClient;
     private final WebClient.Builder webClientBuilder;
-    public void placeOrder(OrderRequest orderRequest) {
+    public String placeOrder(OrderRequest orderRequest) {
 
         //Call inventory service and place order if product is in stock
         BaseResponses result = webClientBuilder.build().post()
@@ -38,6 +38,7 @@ public class OrderService {
                     .toList());
 
             orderRepository.save(order);
+            return "Order placed successfully";
         } else {
             throw new IllegalArgumentException("Some of the products are not in stock");
         }
