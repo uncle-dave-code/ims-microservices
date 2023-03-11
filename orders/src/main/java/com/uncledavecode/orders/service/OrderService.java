@@ -6,6 +6,8 @@ import com.uncledavecode.orders.model.dtos.OrderRequest;
 import com.uncledavecode.orders.model.entities.Order;
 import com.uncledavecode.orders.model.entities.OrderItems;
 import com.uncledavecode.orders.repository.OrderRepository;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,29 +21,38 @@ import java.util.UUID;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-//    private final WebClient webClient;
+    //    private final WebClient webClient;
+    private final Tracer tracer;
     private final WebClient.Builder webClientBuilder;
+
     public String placeOrder(OrderRequest orderRequest) {
 
         //Call inventory service and place order if product is in stock
-        BaseResponses result = webClientBuilder.build().post()
-                .uri("http://inventory-service/api/inventory/in-stock")
-                .bodyValue(orderRequest.getOrderItems())
-                .retrieve()
-                .bodyToMono(BaseResponses.class)
-                .block();
-        if (result != null && !result.hasErrors()) {
-            Order order = new Order();
-            order.setOrderNumber(UUID.randomUUID().toString());
-            order.setOrderItems(orderRequest.getOrderItems().stream()
-                    .map(orderItemRequest -> mapOrderItemRequestToOrderItem(orderItemRequest, order))
-                    .toList());
+        Span inStockSpan = tracer.nextSpan().name("inventory-service-in-stock");
 
-            orderRepository.save(order);
-            return "Order placed successfully";
-        } else {
-            throw new IllegalArgumentException("Some of the products are not in stock");
+        try (Tracer.SpanInScope span = tracer.withSpan(inStockSpan.start())) {
+            BaseResponses result = webClientBuilder.build().post()
+                    .uri("http://inventory-service/api/inventory/in-stock")
+                    .bodyValue(orderRequest.getOrderItems())
+                    .retrieve()
+                    .bodyToMono(BaseResponses.class)
+                    .block();
+            if (result != null && !result.hasErrors()) {
+                Order order = new Order();
+                order.setOrderNumber(UUID.randomUUID().toString());
+                order.setOrderItems(orderRequest.getOrderItems().stream()
+                        .map(orderItemRequest -> mapOrderItemRequestToOrderItem(orderItemRequest, order))
+                        .toList());
+
+                orderRepository.save(order);
+                return "Order placed successfully";
+            } else {
+                throw new IllegalArgumentException("Some of the products are not in stock");
+            }
+        } finally {
+            inStockSpan.end();
         }
+
     }
 
     private OrderItems mapOrderItemRequestToOrderItem(OrderItemRequest orderItemRequest, Order order) {

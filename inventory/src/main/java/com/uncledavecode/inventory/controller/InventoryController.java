@@ -27,7 +27,7 @@ public class InventoryController {
     @PostMapping("/in-stock")
     @ResponseStatus(HttpStatus.OK)
     public BaseResponses areInStock(@RequestBody List<OrderItemRequest> orderItems) {
-        simulateSlowService();
+        //simulateSlowService();
         return inventoryService.areInStock(orderItems);
     }
 
